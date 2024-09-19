@@ -1,0 +1,21 @@
+---
+
+- name: Manage authorized keys
+  ansible.builtin.authorized_key:
+    user: "{{ user.username }}"
+    key: >-
+      {% if keys_base_path is defined and user.ssh_key_path is defined %} 
+      {{ lookup('file', keys_base_path + '/' + user.ssh_key_path + 'id_rsa.pub') }}
+      {% elif user.ssh_key_path is defined %}
+      {{ lookup('file', user.ssh_key_path) }}
+      {% endif %}
+      {% if fixed_authorized_key is defined %} 
+      {{ fixed_authorized_key }}
+      {% endif %}
+      {% if user.authorized_keys is defined %} 
+      {{ user.authorized_keys }}
+      {% endif %}
+  loop: "{{ user_list }}"
+  loop_control:
+    loop_var: user
+    label: "{{ user.username }}"
